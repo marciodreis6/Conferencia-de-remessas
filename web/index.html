@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Conferencia Logistica</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header>
+    <div>
+      <p class="eyebrow">OPERACAO LOGISTICA</p>
+      <h1>Conferencia de remessas</h1>
+      <p class="subtitle">Cruze dados, valide lotes e acompanhe a assertividade em um unico lugar.</p>
+    </div>
+    <a class="button outline" href="/api/export">Exportar historico XLSX</a>
+  </header>
+
+  <nav>
+    <button class="tab active" data-tab="dashboard">Resumo</button>
+    <button class="tab" data-tab="bases">Bases diarias</button>
+    <button class="tab" data-tab="shelf">Shelf life</button>
+    <button class="tab" data-tab="process">Processar TXTs</button>
+    <button class="tab" data-tab="history">Historico</button>
+  </nav>
+
+  <main>
+    <section id="dashboard" class="panel active">
+      <div class="metrics" id="metrics"></div>
+      <div class="card">
+        <div class="card-head"><h2>Principais divergencias</h2><span>Itens processados</span></div>
+        <div id="errors"></div>
+      </div>
+    </section>
+
+    <section id="bases" class="panel">
+      <div class="grid two">
+        <form class="card" id="base-form">
+          <h2>Importar base diaria</h2>
+          <label>Tipo de base
+            <select name="base_type" required>
+              <option value="fabrica">Relatorio da fabrica</option>
+              <option value="detalhamento">Detalhamento de remessas</option>
+              <option value="bloqueados">Itens bloqueados / quarentena</option>
+              <option value="shelf">Parametros iniciais de shelf life</option>
+            </select>
+          </label>
+          <label>Planilha ou arquivo delimitado
+            <input type="file" name="files" accept=".xlsx,.csv,.txt" required>
+          </label>
+          <button class="button" type="submit">Importar base</button>
+        </form>
+        <div class="card">
+          <h2>Como funciona</h2>
+          <p>As importacoes sao versionadas. Cada nova planilha passa a ser a base vigente, mas os registros anteriores continuam disponiveis no historico.</p>
+        </div>
+      </div>
+      <div class="card table-card"><h2>Importacoes recentes</h2><div id="imports"></div></div>
+    </section>
+
+    <section id="shelf" class="panel">
+      <div class="grid two">
+        <form class="card" id="shelf-form">
+          <h2>Alterar parametro</h2>
+          <label>Destino / CNPJ<input name="cliente" required placeholder="Ex.: 1992041000174"></label>
+          <label>Nome do cliente<input name="cliente_nome" placeholder="Ex.: HAF DISTRIBUIDOR LTDA"></label>
+          <label>Shelf life minimo percentual<input name="shelf_minimo" required min="0" max="1" step="0.01" type="number" placeholder="Ex.: 0,80"></label>
+          <button class="button" type="submit">Salvar parametro</button>
+        </form>
+        <div class="card">
+          <h2>Regra aplicada</h2>
+          <p>O sistema calcula a vida util restante na data registrada no TXT e compara o percentual com o parametro do destino. Quando uma remessa possui varios destinos, aplica o parametro mais restritivo para cada material.</p>
+        </div>
+      </div>
+      <div class="card table-card"><h2>Parametros vigentes</h2><div id="shelf-table"></div></div>
+    </section>
+
+    <section id="process" class="panel">
+      <form class="card process" id="process-form">
+        <div>
+          <h2>Processar arquivos TXT</h2>
+          <p>Selecione uma ou varias remessas. O sistema aplicara as bases vigentes automaticamente.</p>
+        </div>
+        <input type="file" name="files" accept=".txt,.csv" multiple required>
+        <button class="button" type="submit">Executar conferencia</button>
+      </form>
+      <div class="card hidden" id="process-result"></div>
+    </section>
+
+    <section id="history" class="panel">
+      <div class="card table-card"><h2>Processamentos</h2><div id="runs"></div></div>
+      <div class="card table-card"><h2>Validacoes por item</h2><div id="validations"></div></div>
+    </section>
+  </main>
+  <div id="toast"></div>
+  <script src="/app.js"></script>
+</body>
+</html>

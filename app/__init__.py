@@ -1,0 +1,2 @@
+"""Conferencia logistica local."""
+
