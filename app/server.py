@@ -123,7 +123,8 @@ class Handler(BaseHTTPRequestHandler):
 
 def main():
     service.initialize()
-    server = ThreadingHTTPServer(("127.0.0.1", 8000), Handler)
+    port = int(os.environ.get("PORT", "8000"))
+    server = ThreadingHTTPServer(("0.0.0.0", port), Handler)
     print("Conferencia Logistica disponivel em http://localhost:8000")
     try:
         server.serve_forever()
