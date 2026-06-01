@@ -4,6 +4,7 @@ import cgi
 import json
 import mimetypes
 import tempfile
+import os
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -11,6 +12,7 @@ from urllib.parse import parse_qs, urlparse
 
 from . import db, service
 from .config import BASE_TYPES, WEB_DIR
+
 
 
 class Handler(BaseHTTPRequestHandler):
