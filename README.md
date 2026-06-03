@@ -16,6 +16,8 @@ Abra `http://localhost:8000`.
 
 1. Na aba **Bases diarias**, importe o relatorio da fabrica, o detalhamento de
    remessas, os itens bloqueados e a base inicial de shelf life.
+   Se uma base incorreta for importada, selecione o tipo e use **Limpar base
+   vigente** antes de carregar o arquivo correto.
 2. Na aba **Shelf life**, confira ou altere os parametros dos clientes.
 3. Na aba **Processar TXTs**, carregue um ou varios arquivos gerados pelo leitor.
 4. Consulte os resultados na aba **Historico** e baixe o XLSX.
@@ -25,6 +27,9 @@ Abra `http://localhost:8000`.
 As bases aceitam `.xlsx`, `.csv` e `.txt` delimitados. O TXT do leitor nao
 possui cabecalho: cada linha contem data, hora, chave do palete e quantidade.
 O importador reconhece aliases comuns para os cabecalhos das planilhas.
+
+Os CNPJs validos sao normalizados para 14 digitos antes da comparacao. Codigos
+internos de destino, como centros e identificadores comerciais, sao preservados.
 
 ## Estrutura
 

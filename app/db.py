@@ -88,6 +88,19 @@ def imports() -> list[dict]:
         return [dict(row) for row in con.execute("SELECT * FROM imports ORDER BY id DESC").fetchall()]
 
 
+def clear_latest_import(base_type: str) -> bool:
+    with connection() as con:
+        row = con.execute(
+            "SELECT MAX(id) id FROM imports WHERE base_type=?",
+            (base_type,),
+        ).fetchone()
+        if not row["id"]:
+            return False
+        con.execute("DELETE FROM base_rows WHERE import_id=?", (row["id"],))
+        con.execute("DELETE FROM imports WHERE id=?", (row["id"],))
+    return True
+
+
 def upsert_shelf(cliente: str, shelf_minimo: float, cliente_nome: str = "", active: bool = True) -> None:
     stamp = now()
     with connection() as con:
@@ -101,6 +114,11 @@ def upsert_shelf(cliente: str, shelf_minimo: float, cliente_nome: str = "", acti
             "INSERT INTO shelf_history(cliente,cliente_nome,shelf_minimo,active,updated_at) VALUES(?,?,?,?,?)",
             (cliente, cliente_nome, shelf_minimo, int(active), stamp),
         )
+
+
+def clear_shelf_rules() -> None:
+    with connection() as con:
+        con.execute("DELETE FROM shelf_rules")
 
 
 def shelf_rules() -> list[dict]:

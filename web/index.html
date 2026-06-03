@@ -48,11 +48,14 @@
           <label>Planilha ou arquivo delimitado
             <input type="file" name="files" accept=".xlsx,.csv,.txt" required>
           </label>
-          <button class="button" type="submit">Importar base</button>
+          <div class="button-row">
+            <button class="button" type="submit">Importar base</button>
+            <button class="button danger" id="clear-base" type="button">Limpar base vigente</button>
+          </div>
         </form>
         <div class="card">
           <h2>Como funciona</h2>
-          <p>As importacoes sao versionadas. Cada nova planilha passa a ser a base vigente, mas os registros anteriores continuam disponiveis no historico.</p>
+          <p>As importacoes sao versionadas. Cada nova planilha passa a ser a base vigente. Se uma base errada for carregada, selecione o tipo e use o botao de limpeza antes de importar a correta.</p>
         </div>
       </div>
       <div class="card table-card"><h2>Importacoes recentes</h2><div id="imports"></div></div>
@@ -62,7 +65,7 @@
       <div class="grid two">
         <form class="card" id="shelf-form">
           <h2>Alterar parametro</h2>
-          <label>Destino / CNPJ<input name="cliente" required placeholder="Ex.: 1992041000174"></label>
+          <label>Destino / CNPJ<input name="cliente" required placeholder="Ex.: 01992041000174"></label>
           <label>Nome do cliente<input name="cliente_nome" placeholder="Ex.: HAF DISTRIBUIDOR LTDA"></label>
           <label>Shelf life minimo percentual<input name="shelf_minimo" required min="0" max="1" step="0.01" type="number" placeholder="Ex.: 0,80"></label>
           <button class="button" type="submit">Salvar parametro</button>
@@ -92,6 +95,14 @@
       <div class="card table-card"><h2>Validacoes por item</h2><div id="validations"></div></div>
     </section>
   </main>
+  <div class="loading-overlay hidden" id="base-loading" role="status" aria-live="polite">
+    <div class="loading-card">
+      <h2>Carregando base diaria</h2>
+      <p id="base-loading-text">Preparando arquivo...</p>
+      <div class="progress-track"><div class="progress-bar" id="base-progress"></div></div>
+      <strong id="base-progress-label">0%</strong>
+    </div>
+  </div>
   <div id="toast"></div>
   <script src="/app.js"></script>
 </body>

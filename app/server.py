@@ -3,8 +3,8 @@ from __future__ import annotations
 import cgi
 import json
 import mimetypes
-import tempfile
 import os
+import tempfile
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -12,10 +12,14 @@ from urllib.parse import parse_qs, urlparse
 
 from . import db, service
 from .config import BASE_TYPES, WEB_DIR
-
+from .parsers import normalize_customer_id
 
 
 class Handler(BaseHTTPRequestHandler):
+    def do_HEAD(self):
+        self.send_response(HTTPStatus.OK)
+        self.end_headers()
+
     def do_GET(self):
         route = urlparse(self.path).path
         if route == "/api/dashboard":
@@ -55,12 +59,15 @@ class Handler(BaseHTTPRequestHandler):
                 if not cliente:
                     raise ValueError("Informe o cliente.")
                 db.upsert_shelf(
-                    cliente,
+                    normalize_customer_id(cliente),
                     float(str(payload["shelf_minimo"]).replace(",", ".")),
                     str(payload.get("cliente_nome", "")).strip(),
                     bool(payload.get("active", True)),
                 )
                 return self.json({"ok": True}, HTTPStatus.CREATED)
+            if route == "/api/clear-base":
+                payload = self.json_body()
+                return self.json(service.clear_current_base(str(payload.get("base_type", ""))))
             return self.json({"error": "Rota nao encontrada."}, HTTPStatus.NOT_FOUND)
         except (ValueError, KeyError) as exc:
             return self.json({"error": str(exc)}, HTTPStatus.BAD_REQUEST)
@@ -127,7 +134,7 @@ def main():
     service.initialize()
     port = int(os.environ.get("PORT", "8000"))
     server = ThreadingHTTPServer(("0.0.0.0", port), Handler)
-    print("Conferencia Logistica disponivel em http://localhost:8000")
+    print(f"Conferencia Logistica disponivel na porta {port}")
     try:
         server.serve_forever()
     except KeyboardInterrupt:

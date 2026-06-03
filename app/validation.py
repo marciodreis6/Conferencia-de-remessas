@@ -101,7 +101,24 @@ def _identify_shipment(txt_totals: dict[str, float],
     if not txt_totals:
         return ""
     matches = [shipment for shipment, totals in detail_by_shipment.items() if totals == txt_totals]
-    return matches[0] if len(matches) == 1 else ""
+    if len(matches) == 1:
+        return matches[0]
+
+    txt_products = set(txt_totals)
+    candidates = []
+    for shipment, totals in detail_by_shipment.items():
+        detail_products = set(totals)
+        overlap = len(txt_products & detail_products)
+        if not overlap:
+            continue
+        difference = len(txt_products ^ detail_products)
+        quantity_gap = sum(abs(txt_totals.get(product, 0) - totals.get(product, 0))
+                           for product in txt_products | detail_products)
+        candidates.append((overlap, -difference, -quantity_gap, shipment))
+    if not candidates:
+        return ""
+    candidates.sort(reverse=True)
+    return candidates[0][3] if len(candidates) == 1 or candidates[0][:3] != candidates[1][:3] else ""
 
 
 def _customers_for(shipment: str, product: str, rows: list[dict]) -> list[dict]:
@@ -127,4 +144,3 @@ def _shelf_percentage(production: str, expiry: str, shipped: str) -> float | Non
 def _blocked_label(row: dict) -> str:
     values = [row.get("status", ""), row.get("status_secundario", "")]
     return " | ".join(value for value in values if value)
-

@@ -22,6 +22,7 @@ def import_base(base_type: str, filename: str, source: Path) -> dict:
     rows = read_tabular(stored)
     require_columns(rows, BASE_TYPES[base_type]["required"])
     if base_type == "shelf":
+        db.clear_shelf_rules()
         for row in rows:
             try:
                 shelf_minimo = parse_number(row["shelf_minimo"])
@@ -48,6 +49,15 @@ def process_txt(filename: str, source: Path) -> dict:
     run_id = db.save_run(filename, results)
     return {"id": run_id, "filename": filename, "items": len(results),
             "approved": sum(item["status"] == "APROVADO" for item in results)}
+
+
+def clear_current_base(base_type: str) -> dict:
+    if base_type not in BASE_TYPES:
+        raise ValueError("Selecione uma base valida.")
+    removed = db.clear_latest_import(base_type)
+    if base_type == "shelf":
+        db.clear_shelf_rules()
+    return {"ok": True, "base_type": base_type, "removed": removed}
 
 
 def dashboard() -> dict:

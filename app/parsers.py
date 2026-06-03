@@ -51,7 +51,41 @@ def canonicalize(row: dict[str, object]) -> dict[str, str]:
             if key in normalized:
                 result[canonical] = str(normalized[key] or "").strip()
                 break
+    if "cliente" in result:
+        result["cliente"] = normalize_customer_id(result["cliente"])
+    for key in ("palete", "produto", "lote"):
+        if key in result:
+            result[key] = normalize_identifier(result[key])
     return result
+
+
+def normalize_customer_id(value: object) -> str:
+    identifier = normalize_identifier(value)
+    if not identifier.isdigit():
+        return identifier
+    candidate = identifier.zfill(14)
+    return candidate if is_valid_cnpj(candidate) else identifier
+
+
+def normalize_identifier(value: object) -> str:
+    text = str(value or "").strip().removeprefix("'")
+    if re.fullmatch(r"\d+\.0", text):
+        text = text[:-2]
+    return text.upper()
+
+
+def is_valid_cnpj(value: str) -> bool:
+    digits = re.sub(r"\D", "", value)
+    if len(digits) != 14 or len(set(digits)) == 1:
+        return False
+    numbers = [int(digit) for digit in digits]
+    for size in (12, 13):
+        weights = list(range(size - 7, 1, -1)) + list(range(9, 1, -1))
+        remainder = sum(number * weight for number, weight in zip(numbers[:size], weights)) % 11
+        check_digit = 0 if remainder < 2 else 11 - remainder
+        if numbers[size] != check_digit:
+            return False
+    return True
 
 
 def read_tabular(path: Path) -> list[dict[str, str]]:

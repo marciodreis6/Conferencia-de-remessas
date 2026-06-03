@@ -40,7 +40,7 @@ class ValidationTest(unittest.TestCase):
         self.assertIn("SHELF_LIFE_INSUFICIENTE", results[0]["errors"])
         self.assertEqual(results[0]["shelf_minimo"], 0.5)
 
-    def test_does_not_guess_shipment_when_composition_differs(self):
+    def test_identifies_best_shipment_and_reports_quantity_difference(self):
         results = validate(
             [{"data_embarque": "2026-05-01", "palete": "PAL-1", "quantidade": "9"}],
             [{"palete": "PAL-1", "produto": "100", "lote": "LOT-1",
@@ -49,10 +49,24 @@ class ValidationTest(unittest.TestCase):
             [],
             [{"cliente": "CLI-1", "shelf_minimo": 0.5, "active": 1}],
         )
+        self.assertEqual(results[0]["remessa"], "REM-1")
+        self.assertIn("QUANTIDADE_DIVERGENTE", results[0]["errors"])
+
+    def test_does_not_guess_shipment_when_best_candidates_tie(self):
+        results = validate(
+            [{"data_embarque": "2026-05-01", "palete": "PAL-1", "quantidade": "9"}],
+            [{"palete": "PAL-1", "produto": "100", "lote": "LOT-1",
+              "producao": "2026-01-01", "validade": "2027-01-01"}],
+            [
+                {"remessa": "REM-1", "cliente": "CLI-1", "produto": "100", "quantidade": "10"},
+                {"remessa": "REM-2", "cliente": "CLI-2", "produto": "100", "quantidade": "10"},
+            ],
+            [],
+            [],
+        )
         self.assertEqual(results[0]["remessa"], "")
         self.assertIn("REMESSA_NAO_IDENTIFICADA", results[0]["errors"])
 
 
 if __name__ == "__main__":
     unittest.main()
-

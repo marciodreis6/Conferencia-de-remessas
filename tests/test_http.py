@@ -58,6 +58,30 @@ class HttpTest(unittest.TestCase):
         self.assertEqual(response.status, 200)
         self.assertEqual(body[:4], b"PK\x03\x04")
 
+    def test_answers_render_health_check(self):
+        connection = http.client.HTTPConnection("127.0.0.1", self.server.server_port)
+        connection.request("HEAD", "/")
+        response = connection.getresponse()
+        response.read()
+        connection.close()
+        self.assertEqual(response.status, 200)
+
+    def test_shelf_reimport_replaces_current_rules(self):
+        self._import("shelf", "s2.csv", "Destino;Shelf;ID_Destino\nCLI-2;0,8;Cliente Novo\n")
+        self.assertEqual([row["cliente"] for row in db.shelf_rules()], ["CLI-2"])
+
+    def test_clears_current_factory_base(self):
+        response, payload = self._json_request("POST", "/api/clear-base", {"base_type": "fabrica"})
+        self.assertEqual(response.status, 200)
+        self.assertTrue(payload["removed"])
+        self.assertEqual(db.latest_rows("fabrica"), [])
+
+    def test_clears_current_shelf_rules(self):
+        response, payload = self._json_request("POST", "/api/clear-base", {"base_type": "shelf"})
+        self.assertEqual(response.status, 200)
+        self.assertTrue(payload["removed"])
+        self.assertEqual(db.shelf_rules(), [])
+
     def _import_fixtures(self):
         self._import("fabrica", "f.csv",
                      "Chave Pallet;Material;Lote;Data do vencimento;Data de producao\n"
@@ -72,6 +96,18 @@ class HttpTest(unittest.TestCase):
         path = self.root / filename
         path.write_text(content, encoding="utf-8")
         service.import_base(base_type, filename, path)
+
+    def _json_request(self, method, route, payload):
+        body = json.dumps(payload).encode()
+        connection = http.client.HTTPConnection("127.0.0.1", self.server.server_port)
+        connection.request(method, route, body, {
+            "Content-Type": "application/json",
+            "Content-Length": str(len(body)),
+        })
+        response = connection.getresponse()
+        response_payload = json.loads(response.read())
+        connection.close()
+        return response, response_payload
 
 
 if __name__ == "__main__":
